@@ -558,15 +558,27 @@ static void InitASI()
 		}
 	}
 
-	if ( int fixWIGB = GetPrivateProfileIntW( L"SilentPatch", L"FixWigB", -1, GetINIPath().c_str() ); fixWIGB != -1 )
-	{
-		if ( fixWIGB != 0 )
-		{
-			auto disableOnBladeMode = get_pattern( "83 F8 02 75 14 F7 05", 3 );
-			auto enableInBladeMode = get_pattern( "83 F8 02 75 0E 8B 16", 3 );
+	// You can delete it any day Silent, it should be counted as a cheat(perhaps??)
+	//if ( int fixWIGB = GetPrivateProfileIntW( L"SilentPatch", L"FixWigB", -1, GetINIPath().c_str() ); fixWIGB != -1 )
+	//{
+	//	if ( fixWIGB != 0 )
+	//	{
+	//		auto disableOnBladeMode = get_pattern( "83 F8 02 75 14 F7 05", 3 );
+	//		auto enableInBladeMode = get_pattern( "83 F8 02 75 0E 8B 16", 3 );
 
-			Patch<uint8_t>( disableOnBladeMode, 0xEB );
-			Patch<uint8_t>( enableInBladeMode, 0xEB );
+	//		Patch<uint8_t>( disableOnBladeMode, 0xEB );
+	//		Patch<uint8_t>( enableInBladeMode, 0xEB );
+	//	}
+	//}
+
+	// Just jump out of the condition, though it'll not be good for CPU or such, requires review about pattern bytes
+	if ( int SkipFrameCheck = GetPrivateProfileIntW( L"SilentPatch", L"SkipFrameCheck", -1, GetINIPath().c_str() ); SkipFrameCheck != -1 )
+	{
+		if ( SkipFrameCheck != 0 )
+		{
+			auto skipCheckCond = pattern( "85 D2 7E ? 52 FF D7" ).get_one(); // should be unique at this point
+
+			Patch<uint8_t>( skipCheckCond.get<void>( 2 ), 0xEB ); // jle -> jmp
 		}
 	}
 
